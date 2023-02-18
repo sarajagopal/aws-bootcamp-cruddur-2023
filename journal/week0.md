@@ -15,5 +15,8 @@ I have created a Billing alarm for $10 using cloud watch. If there is any resour
 ### AWS Budget
 I have created a buget for $1 .Since it is minimal value i have created single budget inorder to avoid cost for creating more than 2 budget.Since budget value is low did not create any threshold inbetween .
 ![Image of Buget Alarm I have created](assets/Aws-buget.JPG)
+
+### Recreate Architectural Diagram
+
 ## HomeWork Challengs.
 
