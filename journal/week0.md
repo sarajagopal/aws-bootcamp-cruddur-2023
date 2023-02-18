@@ -18,5 +18,13 @@ I have created a buget for $1 .Since it is minimal value i have created single b
 
 ### Recreate Architectural Diagram
 
+## Napkin Pic
+
+Basic AWS Architecture for loading website on S3
+![Basic AWS Architecture of loading website using s3](assets/basic_aws_pic.jpg)
+
+AWS Architecture using napkin
+![Architecture in napkin](assets/Architecture_AWS.jpg)
+
 ## HomeWork Challengs.
 
