@@ -26,5 +26,11 @@ Basic AWS Architecture for loading website on S3
 AWS Architecture using napkin
 ![Architecture in napkin](assets/Architecture_AWS.jpg)
 
+## Lucid Chart AWS Architecture Diagram
+Using Lucid chart Prepared the aws architecture diagram as described in the homework.
+![Lucid Chart of Aws Architecture](assets/Luicd_AWS_Arch.PNG)
+
+[Luicd Chart Shared Link](https://lucid.app/lucidchart/f7ff36c9-ea5e-46d6-89ef-2a1c5b2e84bd/edit?viewport_loc=-436%2C108%2C2560%2C1232%2C0_0&invitationId=inv_28a57be3-72a8-45b4-8f35-96e608b6b22d
+)
 ## HomeWork Challengs.
 
