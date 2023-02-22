@@ -34,3 +34,11 @@ Using Lucid chart Prepared the aws architecture diagram as described in the home
 )
 ## HomeWork Challengs.
 
+##Table Example
+|Name|Employee ID | Department|
+|----|------------|-----------|
+|shiva|002002     |Admin      |
+|Raj | 002004     |IT         |
+
+## Reference Document Reffered 
+[Mark down cheat sheet](https://www.markdownguide.org/cheat-sheet/)
