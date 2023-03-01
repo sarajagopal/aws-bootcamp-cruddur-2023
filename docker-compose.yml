@@ -1,0 +1,38 @@
+# This is the version which I am using to run the docker-compose file 
+version: "3.8"
+
+# Here I am declaring services which is backend-flask and frontend-react-js
+services:
+  backend-flask:
+  
+    # Here I am passing the environtment variables which we have to pass to use this image 
+    environment:
+      FRONTEND_URL: "https://3000-${GITPOD_WORKSPACE_ID}.${GITPOD_WORKSPACE_CLUSTER_HOST}"
+      BACKEND_URL: "https://4567-${GITPOD_WORKSPACE_ID}.${GITPOD_WORKSPACE_CLUSTER_HOST}"
+    
+    # This will build/rebuild the image if there is no image or I made some changes into the code
+    build: ./backend-flask
+    
+    # Exposing the ports here which is basically port forwarding
+    ports:
+      - "4567:4567"
+   
+   # Here I am attaching the volume of outside of the container to the inside of container its basically used for persistent data    
+    volumes:
+      - ./backend-flask:/backend-flask
+
+  # All the things will be same for frontend as backend 
+  frontend-react-js:
+    environment:
+      REACT_APP_BACKEND_URL: "https://4567-${GITPOD_WORKSPACE_ID}.${GITPOD_WORKSPACE_CLUSTER_HOST}"
+    build: ./frontend-react-js
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend-react-js:/frontend-react-js
+
+# Here I am making network for docker
+networks: 
+  internal-network:
+    driver: bridge
+    name: cruddur
