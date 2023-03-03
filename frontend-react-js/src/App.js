@@ -8,6 +8,7 @@ import RecoverPage from './pages/RecoverPage';
 import MessageGroupsPage from './pages/MessageGroupsPage';
 import MessageGroupPage from './pages/MessageGroupPage';
 import ConfirmationPage from './pages/ConfirmationPage';
+import NotificationsFeedPage from './pages/NotificationsFeedPage';
 import React from 'react';
 import process from 'process';
 import {
@@ -59,3 +60,5 @@ function App() {
 }
 
 export default App;
+
+  
