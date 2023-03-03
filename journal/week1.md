@@ -196,6 +196,186 @@ Sometimes we get error while docker is loaded as below due to missing of npm ins
 
 ![Frontend error due to missing of npm install](assets/error-with-front-end.PNG)
 
+4. Adding Endpoint for Notifications - Using Flask for Backend
 
+Add the notifications endpoint to the openapi.yml file using these contents:
+```bash
+#create a path using the OpenAPI extension
+/api/activities/notifications:
+    get:
+      description: 'Return a feed of activity for all those I follow'
+      tags: 
+        - activities
+      parameters: []
+      responses:
+        '200':
+          description: Return an array of activities 
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/Activity'
+    ```
+    
+    Now we need to add a route for the endpoint we created. update the below  contents to the backend-flask/app.py file
+    
+    ``` bash
+    # add this in the beginning of the file.
+# It adds the notifications module
+from services.notifications_activities import *
+
+# add notifications route 
+@app.route("/api/activities/notifications", methods=['GET'])
+def data_notifications():
+  data = NotificationsActivities.run()
+  return data, 200
+  ```
+  
+  add a notification file in the backend-flask/services/ as notifications_activities.py. update the below content in to this file,
+  
+  ```bash
+  from datetime import datetime, timedelta, timezone
+class NotificationsActivities:
+  def run():
+    now = datetime.now(timezone.utc).astimezone()
+    results = [{
+      'uuid': '68f126b0-1ceb-4a33-88be-d90fa7109eee',
+      'handle':  'Dev Queen',
+      'message': 'Yah, I got this!',
+      'created_at': (now - timedelta(days=2)).isoformat(),
+      'expires_at': (now + timedelta(days=5)).isoformat(),
+      'likes_count': 5,
+      'replies_count': 1,
+      'reposts_count': 0,
+      'replies': [{
+        'uuid': '26e12864-1c26-5c3a-9658-97a10f8fea67',
+        'reply_to_activity_uuid': '68f126b0-1ceb-4a33-88be-d90fa7109eee',
+        'handle':  'Worf',
+        'message': 'This post has no honor!',
+        'likes_count': 0,
+        'replies_count': 0,
+        'reposts_count': 0,
+        'created_at': (now - timedelta(days=2)).isoformat()
+      }],
+    }
+    ]
+    return results
+   ```
+   
+   5. Adding a React Page for Notifications
+   We need to add a notification feed to the app.js file in the frontend-react-js/src/app.js directory with below content, 
+   
+   ``bash
+   //to import the module
+import NotificationsFeedPage from './pages/NotificationsFeedPage';
+
+//delete this line from the code
+import process from 'process';
+
+//under the const router ... add a router for notifications
+{
+    path: "/notifications",
+    element: <NotificationsFeedPage />
+  },
+  ```
+  
+  Create NotificationsFeedPage.js abd NotificationsFeedPage.css file under frontend-react-js/src/pages/.
+  
+  update the NotificationFeedPage.js with below content,
+  
+  ``` bash
+  import './NotificationsFeedPage.css';
+import React from "react";
+
+import DesktopNavigation  from '../components/DesktopNavigation';
+import DesktopSidebar     from '../components/DesktopSidebar';
+import ActivityFeed from '../components/ActivityFeed';
+import ActivityForm from '../components/ActivityForm';
+import ReplyForm from '../components/ReplyForm';
+
+// [TODO] Authenication
+import Cookies from 'js-cookie'
+
+export default function NotificationsFeedPage() {
+  const [activities, setActivities] = React.useState([]);
+  const [popped, setPopped] = React.useState(false);
+  const [poppedReply, setPoppedReply] = React.useState(false);
+  const [replyActivity, setReplyActivity] = React.useState({});
+  const [user, setUser] = React.useState(null);
+  const dataFetchedRef = React.useRef(false);
+
+  const loadData = async () => {
+    try {
+      const backend_url = `${process.env.REACT_APP_BACKEND_URL}/api/activities/notifications`
+      const res = await fetch(backend_url, {
+        method: "GET"
+      });
+      let resJson = await res.json();
+      if (res.status === 200) {
+        setActivities(resJson)
+      } else {
+        console.log(res)
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const checkAuth = async () => {
+    console.log('checkAuth')
+    // [TODO] Authenication
+    if (Cookies.get('user.logged_in')) {
+      setUser({
+        display_name: Cookies.get('user.name'),
+        handle: Cookies.get('user.username')
+      })
+    }
+  };
+
+  React.useEffect(()=>{
+    //prevents double call
+    if (dataFetchedRef.current) return;
+    dataFetchedRef.current = true;
+
+    loadData();
+    checkAuth();
+  }, [])
+
+  return (
+    <article>
+      <DesktopNavigation user={user} active={'notifications'} setPopped={setPopped} />
+      <div className='content'>
+        <ActivityForm  
+          popped={popped}
+          setPopped={setPopped} 
+          setActivities={setActivities} 
+        />
+        <ReplyForm 
+          activity={replyActivity} 
+          popped={poppedReply} 
+          setPopped={setPoppedReply} 
+          setActivities={setActivities} 
+          activities={activities} 
+        />
+        <ActivityFeed 
+          title="Notifications" 
+          setReplyActivity={setReplyActivity} 
+          setPopped={setPoppedReply} 
+          activities={activities} 
+        />
+      </div>
+      <DesktopSidebar user={user} />
+    </article>
+  );
+} 
+```
+Frontend page output as below,
+
+![frontend page after notification](assets/dockerup-after-notification.PNG)
+
+
+    
+    
 
 
