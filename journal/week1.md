@@ -133,7 +133,7 @@ docker run --rm -p 3000:3000 -it frontend-react-js:v1.0
 The use of docker compose helps us deal with multiple containers. In this link, you will find a detailed explanation and best practices on how to create one.
 Lets create docker-compose.yml file with below content 
 
-```bash
+```yaml
 version: "3.8"
 
 # here is where you declare your services -> frontend & backend 
@@ -199,7 +199,7 @@ Sometimes we get error while docker is loaded as below due to missing of npm ins
 4. Adding Endpoint for Notifications - Using Flask for Backend
 
 Add the notifications endpoint to the openapi.yml file using these contents:
-```bash
+```yaml
 #create a path using the OpenAPI extension
 /api/activities/notifications:
     get:
@@ -220,7 +220,7 @@ Add the notifications endpoint to the openapi.yml file using these contents:
     
     Now we need to add a route for the endpoint we created. update the below  contents to the backend-flask/app.py file
     
-    ``` bash
+    ``` python
     # add this in the beginning of the file.
 # It adds the notifications module
 from services.notifications_activities import *
@@ -234,7 +234,7 @@ def data_notifications():
   
   add a notification file in the backend-flask/services/ as notifications_activities.py. update the below content in to this file,
   
-  ```bash
+  ```python
   from datetime import datetime, timedelta, timezone
 class NotificationsActivities:
   def run():
@@ -266,7 +266,7 @@ class NotificationsActivities:
    5. Adding a React Page for Notifications
    We need to add a notification feed to the app.js file in the frontend-react-js/src/app.js directory with below content, 
    
-   ``bash
+   ```js
    //to import the module
 import NotificationsFeedPage from './pages/NotificationsFeedPage';
 
@@ -284,7 +284,7 @@ import process from 'process';
   
   update the NotificationFeedPage.js with below content,
   
-  ``` bash
+  ```js
   import './NotificationsFeedPage.css';
 import React from "react";
 
@@ -373,6 +373,117 @@ export default function NotificationsFeedPage() {
 Frontend page output as below,
 
 ![frontend page after notification](assets/dockerup-after-notification.PNG)
+
+6. Creating and Running DynamoDB Local
+
+DynamoDB local is a downloadable version of DynamoDB that enables developers to develop and test applications using a version of DynamoDB running in your own development environment. Read [more](https://hub.docker.com/r/amazon/dynamodb-local)
+
+To create our dynamodb service, first add the below  content to the docker compose file.
+
+  ```yaml
+  dynamodb-local:
+    # https://stackoverflow.com/questions/67533058/persist-local-dynamodb-data-in-volumes-lack-permission-unable-to-open-databa
+    # We needed to add user:root to get this working.
+    user: root
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ./data"
+    image: "amazon/dynamodb-local:latest"
+    container_name: dynamodb-local
+    ports:
+      - "8000:8000"
+    volumes:
+      - "./docker/dynamodb:/home/dynamodblocal/data"
+    working_dir: /home/dynamodblocal
+    ```
+    
+    To Verify the dynamodb is working test the below output ,
+    
+    ```yaml
+    aws dynamodb create-table \
+    --endpoint-url http://localhost:8000 \
+    --table-name Music \
+    --attribute-definitions \
+        AttributeName=Artist,AttributeType=S \
+        AttributeName=SongTitle,AttributeType=S \
+    --key-schema AttributeName=Artist,KeyType=HASH AttributeName=SongTitle,KeyType=RANGE \
+    --provisioned-throughput ReadCapacityUnits=1,WriteCapacityUnits=1 \
+    --table-class STANDARD
+    ```
+    
+    add the item to the created table ,
+   
+   ```yaml
+    aws dynamodb put-item \
+    --endpoint-url http://localhost:8000 \
+    --table-name Music \
+    --item \
+        '{"Artist": {"S": "No One You Know"}, "SongTitle": {"S": "Call Me Today"}, "AlbumTitle": {"S": "Somewhat Famous"}}' \
+    --return-consumed-capacity TOTAL
+    ```
+    
+    List down all the tables created using the below command.
+    
+    ```bash
+    aws dynamodb list-tables --endpoint-url http://localhost:8000
+    ```
+    
+    Get the Item(s) record from the table Music using this command:
+    
+    ```bash
+    aws dynamodb scan --table-name Music --query "Items" --endpoint-url http://localhost:8000
+    ```
+    ![output of dynamodb](assets/dyanamodb-output.PNG)
+    
+    7. Create and Run using Postgres DB
+    
+    To create our postgre service add the below command in the docker-compose file.
+    
+    ```bash
+      db:
+    image: postgres:13-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    ports:
+      - '5432:5432'
+    volumes: 
+      - db:/var/lib/postgresql/data
+
+    volumes:
+      db:
+      driver: local
+    ```
+    
+    We need to install the postgres client driver and update the gitpod.xml file with the below configurations.
+    
+    ```bash
+    
+    - name: postgres
+    init: |
+      curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc|sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
+      echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" |sudo tee  /etc/apt/sources.list.d/pgdg.list
+      sudo apt update
+      sudo apt install -y postgresql-client-13 libpq-dev
+    ```
+    Now to get the postgres installed, you could either manually run the commands above individually. Or stop gitpod and restart it. Either way works.
+    
+    Connect to the postgres client using below command 
+
+```bash
+    # to connect to the postgres client
+psql --host localhost
+
+# to access the postgres DB
+psql -h localhost -U postgres
+
+# play around with the postgres commands 
+\l # lists the tables you have 
+\dl
+\q # quits the DB
+```
+
+![output of postgres table](assets/postgres-output.PNG)
+
 
 
     
