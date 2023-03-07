@@ -34,6 +34,10 @@ const router = createBrowserRouter([
     element: <MessageGroupPage />
   },
   {
+    path: "/notifications",
+    element: <NotificationsFeedPage />
+  },
+  {
     path: "/signup",
     element: <SignupPage />
   },

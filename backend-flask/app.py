@@ -14,6 +14,7 @@ from services.create_message import *
 from services.show_activity import *
 # To import notification activity 
 from services.notifications_activities import *
+ 
 
 app = Flask(__name__)
 frontend = os.getenv('FRONTEND_URL')
@@ -123,8 +124,5 @@ def data_activities_reply(activity_uuid):
 if __name__ == "__main__":
   app.run(debug=True)
 
-  # add this in the beginning of the file.
-# It adds the notifications module
-from services.notifications_activities import *
 
 
