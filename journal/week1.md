@@ -372,7 +372,7 @@ export default function NotificationsFeedPage() {
 ```
 Frontend page output as below,
 
-![frontend page after notification](assets/dockerup-after-notification.PNG)
+![frontend page after notification](assets/notification-login.PNG)
 
 6. Creating and Running DynamoDB Local
 
