@@ -15,6 +15,25 @@ from services.show_activity import *
 # To import notification activity 
 from services.notifications_activities import *
  
+# Honeycomb
+from opentelemetry import trace
+from opentelemetry.instrumentation.flask import FlaskInstrumentor
+from opentelemetry.instrumentation.requests import RequestsInstrumentor
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
+# Initialize tracing and an exporter that can send data to Honeycomb
+provider = TracerProvider()
+processor = BatchSpanProcessor(OTLPSpanExporter())
+provider.add_span_processor(processor)
+trace.set_tracer_provider(provider)
+tracer = trace.get_tracer(__name__)
+
+# Initialize automatic instrumentation with Flask
+app = Flask(__name__) # if this link already exists, DON'T call it again
+FlaskInstrumentor().instrument_app(app)
+RequestsInstrumentor().instrument()
 
 app = Flask(__name__)
 frontend = os.getenv('FRONTEND_URL')
