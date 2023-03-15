@@ -14,3 +14,7 @@ Once logged in to honeycomb main page, goto ENVIRONMENT on the left panel of you
 Click Manage Environments to create new environment with description and choose any color for representing .
 After creation of new environment file.
 ![new environment created](assets/new_env_created_honeycmb.PNG).
+
+Now,  the API keys under View API keys. The API keys you use determines the environment that data will land in.
+
+Let's export our API key to gitpod using the commands below:
