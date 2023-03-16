@@ -4,7 +4,7 @@ import logging
 tracer = trace.get_tracer("home.activities")
 
 class HomeActivities:
-  def run(cognito_user_id=None):
+  def run():
     #logger.info("HomeActivities")
     with tracer.start_as_current_span("home-activities-mock-data"):
      span = trace.get_current_span()
@@ -61,6 +61,6 @@ class HomeActivities:
           'replies': []
         }
         results.insert(0,extra_crud)
-
+    # at the bottom -> app.result_length
     span.set_attribute("app.result_length", len(results))
     return results
