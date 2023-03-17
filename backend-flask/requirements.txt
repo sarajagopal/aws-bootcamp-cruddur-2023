@@ -6,6 +6,7 @@ opentelemetry-exporter-otlp-proto-http
 opentelemetry-instrumentation-flask 
 opentelemetry-instrumentation-requests # this should instrument outgoing HTTP calls
 aws-xray-sdk
+watchtower
 
 
 
