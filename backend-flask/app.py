@@ -28,9 +28,9 @@ from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.ext.flask.middleware import XRayMiddleware
 
 #Cloudwatch Logs
-import watchtower
-import logging
-from time import strftime
+#import watchtower
+#import logging
+#from time import strftime
 
 # Rollbar
 import os
