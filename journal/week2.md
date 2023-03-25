@@ -140,7 +140,7 @@ span.set_attribute("app.result_length", len(results))
  XRayMiddleware(app, xray_recorder)
  ```
  
- **Create sampling rule
+ **Create sampling rule**
  
  Create a json file in the aws/json directory
  Add the following lines of code to your newly created file:
@@ -196,6 +196,63 @@ xray-daemon:
       - 2000:2000/udp
  ```
  
+ ![cli output](assets/xray-cli-output.PNG)
  
+ ![xray out](assets/xray-output-log.PNG)
+ 
+ ![aws console output](assets/xray-sampling-output.PNG)
+ 
+##Create a custom segment and subsegment with AWS X-ray
+
+follow the configurations in the [document](https://github.com/aws/aws-xray-sdk-python#start-a-custom-segmentsubsegment) on how to create segments and subsegments
+
+In the backend-flask/services/user_activities.py file, add the following changes:
+
+```PYTHON
+from aws_xray_sdk.core import xray_recorder
+
+# Add in the def run(user_handle): section, 
+# but below, before the return statement
+# Start a segment
+	subsegment = xray_recorder.begin_segment('mock-data')
+
+    dict = {
+      "now": now.isoformat(),
+      "results-size": len(model['data'])
+    }
+
+    subsegment.put_metadata('key', dict, 'namespace')
+
+    # Close subsegment
+    xray_recorder.end_subsegment()
+ ```
+ Make changes in the app.py as below,
+ 
+ ```PYTHON
+ # replace these blocks of code with this
+
+@app.route("/api/activities/home", methods=['GET'])
+@xray_recorder.capture('activities_home')
+def data_home():
+  data = HomeActivities.run(logger=LOGGER)
+  return data, 200
+
+@app.route("/api/activities/@<string:handle>", methods=['GET'])
+@xray_recorder.capture('activities_users')
+def data_handle(handle):
+  model = UserActivities.run(handle)
+  if model['errors'] is not None:
+    return model['errors'], 422
+  else:
+    return model['data'], 200
+
+@app.route("/api/activities/<string:activity_uuid>", methods=['GET'])
+@xray_recorder.capture('activities_show')
+def data_show_activity(activity_uuid):
+  data = ShowActivity.run(activity_uuid=activity_uuid)
+  return data, 200
+```
+
+ ![aws segment output](assets/xray-segment-fault.PNG)
  
  
