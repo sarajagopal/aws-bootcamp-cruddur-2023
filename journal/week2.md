@@ -320,3 +320,79 @@ def data_home():
 
 ![cloudwatch log](assets/cloud-watch-log.PNG)
 
+5.Integrate Rollbar for Error Logging
+
+Rollbar is a cloud-based bug tracking and monitoring solution that caters to organizations of all sizes. Read [more](https://rollbar.com/)
+
+Add ```blinker, rollbar``` to the ```requirements.txt``` file in the ```backend-flask/``` directory
+
+install the dependencies listed in the ```requirements.txt``` file In the backend-flask directory, run the following command:
+
+```BASH
+pip install -r requirements.txt
+```
+
+set the environment configurations, 
+
+```BASH
+export ROLLBAR_ACCESS_TOKEN=""
+gp env ROLLBAR_ACCESS_TOKEN=""
+```
+
+Add ACCESS_TOKEN to docker-compose.yml file
+
+```BASH
+
+# under environment variables
+ROLLBAR_ACCESS_TOKEN: "${ROLLBAR_ACCESS_TOKEN}"
+
+```
+
+Import Rollbar Libraries
+
+Let's import the rollbar libraries Add the following lines in the app.py file
+
+```PHYTHON
+# Rollbar
+import rollbar
+import rollbar.contrib.flask
+from flask import got_request_exception
+
+# after app = Flask(__name__), to avoid errors
+# add these lines 
+rollbar_access_token = os.getenv('ROLLBAR_ACCESS_TOKEN')
+@app.before_first_request
+def init_rollbar():
+    """init rollbar module"""
+    rollbar.init(
+        # access token
+        rollbar_access_token,
+        # environment name
+        'production',
+        # server root directory, makes tracebacks prettier
+        root=os.path.dirname(os.path.realpath(__file__)),
+        # flask already sets up logging
+        allow_logging_basic_config=False)
+
+    # send exceptions from `app` to rollbar, using flask's signal system.
+    got_request_exception.connect(rollbar.contrib.flask.report_exception, app)
+
+```
+
+Add Rollbar Endpoint
+
+make changes to the @app.route to add the rollbar endpoint 
+
+```PYTHON
+@app.route('/rollbar/test')
+def rollbar_test():
+    rollbar.report_message('Hello World!', 'warning')
+    return "Hello World!"
+```
+bring up the docker using ```docker compose up``` 
+Afterward, test out the new endpoint you added by appending /rollbar/test to your backend URL
+
+![rollbar output](assets/rollbar-output1.PNG)
+
+![error captured](assets/rollbar-output-log.PNG)
+
