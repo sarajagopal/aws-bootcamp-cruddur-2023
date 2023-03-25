@@ -88,4 +88,28 @@ RequestsInstrumentor().instrument()
 
 Now time to build the docker using ``` docker compose up ```
 
+* check which API key is set in environment . Do that by checking your env variables env | grep HONEYCOMB_API_KEY
+* Create a span, with configured tracer  in the file ```backend-flask/services/home_activities.py``` 
+```PHYTHON 
+# add under def run():
+with tracer.start_as_current_span("home-activities-mock-data"):
+# make sure every other line beneath is properly indented under the code you pasted 
+```
+
+* Adding attributes to the span in the homea_activities.py file
+
+```PYTHON
+# in the def run(): section
+# add attribute -> app.now 
+span = trace.get_current_span()
+span.set_attribute("app.now", now.isoformat())
+# at the bottom -> app.result_length
+span.set_attribute("app.result_length", len(results))
+```
+![create a span](assets/honeycmb1.PNG)
+
+![query to collect data](assets/honeyex1.PNG)
+
+![Latency Check](assets/honeyex2.PNG)
+
 
