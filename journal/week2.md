@@ -256,3 +256,67 @@ def data_show_activity(activity_uuid):
  ![aws segment output](assets/xray-segment-fault.PNG)
  
  
+4.Install WatchTower & write custom logger to send app log data to CloudWatch Log Group
+
+Add ```watchtower``` to the ```requirment.txt``` file in the ```backend-flask``` code.
+Install the dependencies listed in the ```requirment.txt``` file with below command 
+
+```BASH
+pip install -r requirements.txt
+```
+
+**Set environment variables for watchtower**
+
+In the ```docker-compose.yml``` file, add the following lines:
+
+```BASH
+AWS_DEFAULT_REGION: "${AWS_DEFAULT_REGION}"
+AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID}"
+AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY}"
+```
+
+configure the cloudwatch logger in app.py file as below 
+
+```PYTHON
+# CloudWatch Logs
+import watchtower
+import logging
+from time import strftime
+
+# Configuring Logger to Use CloudWatch
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
+console_handler = logging.StreamHandler()
+cw_handler = watchtower.CloudWatchLogHandler(log_group='cruddur')
+LOGGER.addHandler(console_handler)
+LOGGER.addHandler(cw_handler)
+LOGGER.info("test message")
+```
+
+```PYTHON
+@app.after_request
+def after_request(response):
+    timestamp = strftime('[%Y-%b-%d %H:%M]')
+    LOGGER.error('%s %s %s %s %s %s', timestamp, request.remote_addr, request.method, request.scheme, request.full_path, response.status)
+    return response
+```
+
+Now, log some message in one of the API endpoint by adding the following lines to our backend-flask/services/home_activities.py file:
+
+```PYTHON
+# in the class HomeActivities: section, update and add these lines
+def run(logger):
+    logger.info("HomeActivities")
+```
+
+modify the data_home api with below changes,
+
+```PHYTHON
+@app.route("/api/activities/home", methods=['GET'])
+def data_home():
+  data = HomeActivities.run(logger=LOGGER)
+  return data, 200
+```
+
+![cloudwatch log](assets/cloud-watch-log.PNG)
+
