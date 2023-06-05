@@ -28,9 +28,9 @@ from aws_xray_sdk.core import xray_recorder
 from aws_xray_sdk.ext.flask.middleware import XRayMiddleware
 
 #Cloudwatch Logs
-#import watchtower
-#import logging
-#from time import strftime
+import watchtower
+import logging
+from time import strftime
 
 # Rollbar
 import os
@@ -39,13 +39,13 @@ import rollbar.contrib.flask
 from flask import got_request_exception
 
 # Configuring Logger to Use CloudWatch
-#LOGGER = logging.getLogger(__name__)
-#LOGGER.setLevel(logging.DEBUG)
-#console_handler = logging.StreamHandler()
-#cw_handler = watchtower.CloudWatchLogHandler(log_group='cruddur')
-#LOGGER.addHandler(console_handler)
-#LOGGER.addHandler(cw_handler)
-#LOGGER.info("test log")
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
+console_handler = logging.StreamHandler()
+cw_handler = watchtower.CloudWatchLogHandler(log_group='cruddur')
+LOGGER.addHandler(console_handler)
+LOGGER.addHandler(cw_handler)
+LOGGER.info("test log")
 
 
 #xray
@@ -78,15 +78,16 @@ origins = [frontend, backend]
 cors = CORS(
   app, 
   resources={r"/api/*": {"origins": origins}},
-  expose_headers="location,link",
-  allow_headers="content-type,if-modified-since",
+  headers=['Content-Type', 'Authorization'], 
+  expose_headers='Authorization',
   methods="OPTIONS,GET,HEAD,POST"
 )
 
 # RollBar 
 rollbar_access_token = os.getenv('ROLLBAR_ACCESS_TOKEN')
-@app.before_first_request
-def init_rollbar():
+#@app.before_first_request
+with app.app_context():
+  def init_rollbar():
     """init rollbar module"""
     rollbar.init(
         # access token
@@ -106,11 +107,11 @@ def rollbar_test():
     rollbar.report_message('Hello World!', 'warning')
     return "Hello World!"
 
-#@app.after_request
-#def after_request(response):
-#   timestamp = strftime('[%Y-%b-%d %H:%M]')
-#   LOGGER.error('%s %s %s %s %s %s', timestamp, request.remote_addr, request.method, request.scheme, request.full_path, response.status)
-#  return response
+@app.after_request
+def after_request(response):
+   timestamp = strftime('[%Y-%b-%d %H:%M]')
+   LOGGER.error('%s %s %s %s %s %s', timestamp, request.remote_addr, request.method, request.scheme, request.full_path, response.status)
+   return response
 
 @app.route("/api/message_groups", methods=['GET'])
 def data_message_groups():
@@ -150,7 +151,7 @@ def data_create_message():
 @app.route("/api/activities/home", methods=['GET'])
 #@xray_recorder.capture('activities_home')
 def data_home():
-  data = HomeActivities.run()
+  data = HomeActivities.run(logger=LOGGER)
   return data, 200
 
 # add notifications route 
