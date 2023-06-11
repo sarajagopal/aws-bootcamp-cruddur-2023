@@ -1,6 +1,6 @@
 # Week 3 — Decentralized Authentication
 
-**Setup AWS Cognito User Pool**
+1 **Setup AWS Cognito User Pool**
 
 Amazon Cognito provides authentication, authorization, and user management for your web and mobile apps. The users can sign in directly with a username and password or through a third party such as Facebook, Amazon, Google, or Apple. We will be working with one of its components known as user pool.
 
@@ -46,4 +46,82 @@ Note: Required attributes can't be changed once this user pool has been created.
 
 ![Customize attributes](https://github.com/sarajagopal/aws-bootcamp-cruddur-2023/blob/main/journal/assets/coginto_config6.png)
 
+
+**Step 4:**
+
++ In the Email provider section, change the selection to Send email with Cognito. After that, leave the default selection that comes with the option.
+
+**Step 5:**
+
++ In the User pool name section, add a name of your choice; mine was cruddur-user-pool.
+   Note: Your user pool name can't be changed once this user pool is created.
+ 
+ ![userpool name selection](https://github.com/sarajagopal/aws-bootcamp-cruddur-2023/blob/main/journal/assets/coginto_config7.png)
+ 
++ Next to the Hosted authentication pages section, DON'T check the box that says Use the Cognito Hosted UI. We won't be using that feature for our project.
++ In the Initial app client section, select Public client as our App type.
+
++ Add a name for the App client name; mine was cruddur. After that, leave the rest of the default selections and click Next
+![App Client name](https://github.com/sarajagopal/aws-bootcamp-cruddur-2023/blob/main/journal/assets/coginto_config8.png)
+
+**Step 6:**
+
++ In this section, we will review all our configurations and then go ahead to Create user pool. After creation, you should get this success message.
+
+![configuration completed](https://github.com/sarajagopal/aws-bootcamp-cruddur-2023/blob/main/journal/assets/coginto_config10.png)
+
+
+2. **Configure Amazon Amplify**
+
+Amazon Amplify is a complete solution that lets frontend web and mobile developers easily build, ship, and host full-stack applications on AWS, with the flexibility to leverage the breadth of AWS services as use cases evolve. Check out this link for better explanation of the service.
+
+Let's go ahead and configure our Amazon Amplify.
+
++ In your Terminal, navigate to the frontend-react-js directory, and run this command:
+
+```BASH
+
+# navigate to frontend-react-js
+cd frontend-react-js
+
+# add aws-amplify library
+npm i aws-amplify --save
+# the --save flag saves the library to your package.json file 
+```
+
++ Go into your frontend-react-js/src/App.js and add the following contents. Make sure to add it before the router configuration.
+
+```BASH
+// AWS Amplify
+import { Amplify } from 'aws-amplify';
+
+Amplify.configure({
+  "AWS_PROJECT_REGION": process.env.REACT_APP_AWS_PROJECT_REGION,
+  "aws_cognito_region": process.env.REACT_APP_AWS_COGNITO_REGION,
+  "aws_user_pools_id": process.env.REACT_APP_AWS_USER_POOLS_ID,
+  "aws_user_pools_web_client_id": process.env.REACT_APP_CLIENT_ID,
+  "oauth": {},
+  Auth: {
+    // We are not using an Identity Pool
+    // identityPoolId: process.env.REACT_APP_IDENTITY_POOL_ID, // REQUIRED - Amazon Cognito Identity Pool ID
+    region: process.env.REACT_APP_AWS_PROJECT_REGION,           // REQUIRED - Amazon Cognito Region
+    userPoolId: process.env.REACT_APP_AWS_USER_POOLS_ID,         // OPTIONAL - Amazon Cognito User Pool ID
+    userPoolWebClientId: process.env.REACT_APP_AWS_USER_POOLS_WEB_CLIENT_ID,   // OPTIONAL - Amazon Cognito Web Client ID (26-char alphanumeric string)
+  }
+});
+```
+
++ Now let's set our environment variables from the code mentioned above. Go into your docker-compose.yml file, and under the frontend-react-js service, add the following lines:
+
+``` BASH
+# AWS Amplify
+REACT_APP_AWS_PROJECT_REGION: "${AWS_DEFAULT_REGION}"
+REACT_APP_AWS_COGNITO_REGION: "${AWS_DEFAULT_REGION}"
+REACT_APP_AWS_USER_POOLS_ID: "${REACT_APP_AWS_USER_POOLS_ID}"
+REACT_APP_CLIENT_ID: "${REACT_APP_CLIENT_ID}"
+```
+
++ Important - To view your user pool ID, select the user pool name from the AWS console. For the client ID, click into the pool you created and look for the App integration tab as shown in the image below. Then scroll all the way down to view your client ID
+
+![Client ID](https://github.com/sarajagopal/aws-bootcamp-cruddur-2023/blob/main/journal/assets/coginto_config11.png)
 
