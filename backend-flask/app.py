@@ -38,6 +38,8 @@ import rollbar
 import rollbar.contrib.flask
 from flask import got_request_exception
 
+#cognito
+from lib.cognito_jwt_token import CognitoJwtToken, extract_access_token, TokenVerifyError
 # Configuring Logger to Use CloudWatch
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -69,6 +71,12 @@ tracer = trace.get_tracer(__name__)
 app = Flask(__name__) # if this link already exists, DON'T call it again
 FlaskInstrumentor().instrument_app(app)
 RequestsInstrumentor().instrument()
+
+cognito_jwt_token = CognitoJwtToken(
+  user_pool_id=os.getenv("AWS_COGNITO_USER_POOL_ID"),
+  user_pool_client_id=os.getenv("AWS_COGNITO_USER_POOL_CLIENT_ID"),
+  region=os.getenv("AWS_DEFAULT_REGION")
+)
 
 #XRayMiddleware(app, xray_recorder)
 
@@ -151,7 +159,20 @@ def data_create_message():
 @app.route("/api/activities/home", methods=['GET'])
 #@xray_recorder.capture('activities_home')
 def data_home():
-  data = HomeActivities.run(logger=LOGGER)
+  app.logger.debug(request.headers)
+  access_token = extract_access_token(request.headers)
+  try:
+    claims = cognito_jwt_token.verify(access_token)
+    # authenticated request
+    app.logger.debug("authenticated")
+    app.logger.debug(claims)
+    app.logger.debug(claims['username'])
+    data = HomeActivities.run(cognito_user_id=claims['username'])
+  except TokenVerifyError as e:
+    # unauthenticated request
+    app.logger.debug(e)
+    app.logger.debug("unauthenticated")
+    data = HomeActivities.run()
   return data, 200
 
 # add notifications route 
