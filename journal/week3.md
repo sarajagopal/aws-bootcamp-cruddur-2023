@@ -125,3 +125,80 @@ REACT_APP_CLIENT_ID: "${REACT_APP_CLIENT_ID}"
 
 ![Client ID](https://github.com/sarajagopal/aws-bootcamp-cruddur-2023/blob/main/journal/assets/coginto_config11.png)
 
+
++ In the frontend-react-js/src/pages/HomeFeedPage.js file, add the following lines of code:
+
+``` JS
+// AWS Amplify
+import { Auth } from 'aws-amplify';
+
+// DELETE THESE LINES
+const checkAuth = async () => {
+    console.log('checkAuth')
+    // [TODO] Authenication
+    if (Cookies.get('user.logged_in')) {
+      setUser({
+        display_name: Cookies.get('user.name'),
+        handle: Cookies.get('user.username')
+      })
+    }
+  };
+
+
+// ADD THESE LINES 
+// check if we are authenicated
+const checkAuth = async () => {
+  Auth.currentAuthenticatedUser({
+    // Optional, By default is false. 
+    // If set to true, this call will send a 
+    // request to Cognito to get the latest user data
+    bypassCache: false 
+  })
+  .then((user) => {
+    console.log('user',user);
+    return Auth.currentAuthenticatedUser()
+  }).then((cognito_user) => {
+      setUser({
+        display_name: cognito_user.attributes.name,
+        handle: cognito_user.attributes.preferred_username
+      })
+  })
+  .catch((err) => console.log(err));
+};
+```
+
++ Now let's update our frontend-react-js/src/components/ProfileInfo.js file with the following contents: 
+
+```JS
+
+// DELETE THIS LINE 
+import Cookies from 'js-cookie'
+
+//ADD THIS LINE
+// AWS Amplify
+import { Auth } from 'aws-amplify';
+
+// DELETE THESE LINES 
+const signOut = async () => {
+    console.log('signOut')
+    // [TODO] Authenication
+    Cookies.remove('user.logged_in')
+    //Cookies.remove('user.name')
+    //Cookies.remove('user.username')
+    //Cookies.remove('user.email')
+    //Cookies.remove('user.password')
+    //Cookies.remove('user.confirmation_code')
+    window.location.href = "/"
+  }
+
+// ADD THESE LINES 
+const signOut = async () => {
+  try {
+      await Auth.signOut({ global: true });
+      window.location.href = "/"
+  } catch (error) {
+      console.log('error signing out: ', error);
+  }
+}
+```
+
